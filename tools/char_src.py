@@ -1,9 +1,10 @@
 import os
 import math, json, sys
 W,H=32,36
-PAL={"K":"#2a1f3d","H":"#1c1a26","h":"#4a4560","S":"#ffeee6","s":"#f3d2c6","P":"#f472b6","p":"#fbcfe8",
-     "Y":"#fde047","y":"#f59e0b","E":"#4c2a85","e":"#a78bfa","W":"#ffffff","B":"#fbb6ce","M":"#c0567a",
-     "C":"#c4b5fd","c":"#a78bfa","L":"#ffffff","R":"#f472b6","T":"#93c5fd"}
+PAL={"K":"#2a1f3d","H":"#1c1a26","h":"#4a4560","S":"#ffeee6","s":"#f3d2c6",
+     "Y":"#fbbf24","y":"#b45309","E":"#5b0f2e","e":"#f43f5e","W":"#ffffff","B":"#fbb6ce","M":"#9f1239",
+     "G":"#5b5470","g":"#a59dbb","D":"#3b1f5c","d":"#24123d","r":"#be123c","R":"#e11d48",
+     "V":"#4c2a85","v":"#2a1442","T":"#93c5fd","p":"#f9a8d4"}
 def blank(): return [["." for _ in range(W)] for _ in range(H)]
 g=blank()
 def put(x,y,c,grid=None):
@@ -18,16 +19,27 @@ ell(16,15,12.5,12,"H")
 for y in range(15,30):
     for x in range(4,28):
         if y<29 or 6<=x<=25: put(x,y,"H")
-# body
+# wings (behind)
+WING={13:(0,),14:(0,1),15:(0,1,2),16:(0,1,2,3),17:(0,1,2,3),18:(0,1,2,3,4),19:(0,1,2,3,4),
+      20:(0,1,2,3,4),21:(1,2,3,4),22:(0,2,3,4),23:(3,4),24:(4,)}
+RIB={(1,16),(1,17),(2,18),(2,19),(2,20)}
+for y,xs in WING.items():
+    for x in xs:
+        c="v" if (x,y) in RIB else "V"
+        put(x,y,c); put(31-x,y,c)
+# cape body
 for y in range(28,36):
     w=8+min(y-28,3)
-    for x in range(16-w,16+w): put(x,y,"C")
-for y in range(32,36):
-    put(16-11+ (0),y,"c")
-# collar (sailor-ish)
-for i,y in enumerate(range(28,32)):
-    for x in range(12+i,20-i): put(x,y,"L")
-put(15,31,"R");put(16,31,"R");put(15,32,"R");put(16,32,"R")
+    for x in range(16-w,16+w): put(x,y,"D")
+for y in range(30,36):
+    put(16-11,y,"d"); put(16+10,y,"d")
+# high collar (red lining)
+for y in range(23,29):
+    for x in (9,10,11): put(x,y,"D" if x==9 or y==23 else "r")
+    for x in (20,21,22): put(x,y,"D" if x==22 or y==23 else "r")
+# brooch
+for x,y in [(15,29),(16,29),(15,30),(16,30)]: put(x,y,"Y")
+put(15,29,"R"); put(16,30,"R")
 # neck
 for y in range(24,28):
     for x in range(14,18): put(x,y,"s" if y==24 else "S")
@@ -41,18 +53,15 @@ for x in range(7,25):
         if g[y][x] in "S.H": put(x,y,"H")
 # hair highlight arc
 for x,y in [(11,6),(12,5),(13,5),(14,5),(15,5)]: put(x,y,"h")
-# headphone band
-for y in range(H):
-    for x in range(W):
-        d=math.hypot((x+.5-16)/13.2,(y+.5-15)/13.2)
-        if 0.93<=d<=1.04 and y<=14: put(x,y,"P")
-for y in range(13,21):
-    for x in (1,2,3): put(x,y,"P")
-    for x in (28,29,30): put(x,y,"P")
-for y in (15,16,17,18): put(2,y,"p"); put(29,y,"p")
-# star clip
-for x,y in [(22,6),(21,7),(22,7),(23,7),(20,8),(21,8),(22,8),(23,8),(24,8),(21,9),(22,9),(23,9),(21,10),(23,10)]: put(x,y,"Y")
-put(22,8,"y")
+# horns
+HORN=[(7,5,"G"),(8,5,"g"),(9,5,"G"),(6,4,"G"),(7,4,"g"),(8,4,"G"),(5,3,"G"),(6,3,"g"),(7,3,"G"),
+      (5,2,"G"),(6,2,"g"),(5,1,"G"),(6,1,"G"),(6,0,"G")]
+for x,y,c in HORN:
+    put(x,y,c); put(31-x,y,c)
+# circlet + gem
+for x in range(10,22): put(x,8,"Y")
+for x,y in [(15,8),(16,8),(15,9),(16,9)]: put(x,y,"R")
+put(15,8,"p")
 # blush
 for x in (9,10,21,22): put(x,21,"B")
 base=[r[:] for r in g]
@@ -79,18 +88,18 @@ for ex in (9,19):
         for dx,c in enumerate(row):
             if c!=".": normal.append((ex+dx,15+dy,c))
 normal+=[(8,15,"K"),(23,15,"K")]
-normal+=[(15,22,"M"),(16,22,"M"),(14,21,"M"),(17,21,"M")]
+normal+=[(14,21,"M"),(15,22,"M"),(16,22,"M"),(17,22,"M"),(18,21,"M"),(17,23,"W")]
 face("normal",normal)
 happy=[]
 for ex in (9,19):
     happy+=[(ex,18,"E"),(ex+1,17,"E"),(ex+2,17,"E"),(ex+3,18,"E")]
 happy+=[(14,21,"M"),(15,21,"M"),(16,21,"M"),(17,21,"M"),(15,22,"M"),(16,22,"M")]
-happy+=[(27,4,"Y"),(26,5,"Y"),(27,5,"Y"),(28,5,"Y"),(27,6,"Y"),(3,7,"p"),(4,6,"p"),(4,7,"p"),(5,7,"p"),(4,8,"p")]
+happy+=[(17,23,"W"),(27,9,"R"),(26,10,"R"),(27,10,"R"),(28,10,"R"),(27,11,"R"),(3,11,"p"),(4,10,"p"),(4,11,"p"),(5,11,"p"),(4,12,"p")]
 face("happy",happy)
 oops=[]
 for (x,y) in [(10,16),(11,17),(12,18),(11,19),(10,20)]: oops.append((x,y,"E"))
 for (x,y) in [(22,16),(21,17),(20,18),(21,19),(22,20)]: oops.append((x,y,"E"))
-oops+=[(14,22,"M"),(15,21,"M"),(16,22,"M"),(17,21,"M"),(25,10,"T"),(25,11,"T"),(24,11,"T")]
+oops+=[(14,22,"M"),(15,21,"M"),(16,22,"M"),(17,21,"M"),(25,11,"T"),(25,12,"T"),(24,12,"T")]
 face("oops",oops)
 
 def rects(grid):
