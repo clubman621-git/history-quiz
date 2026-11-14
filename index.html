@@ -581,7 +581,7 @@ applyGuide($("showGuide").checked);
 $("showGuide").addEventListener("change", e => applyGuide(e.target.checked));
 
 // ---- スタート画面 ----
-$("eras").innerHTML = ERAS.map(e => `<label class="pxbox"><input type="checkbox" value="${e}" checked>${e}<small>${ERA_NOTE[e]}</small></label>`).join("");
+$("eras").innerHTML = ERAS.map(e => `<label class="pxbox"><input type="checkbox" value="${e}">${e}<small>${ERA_NOTE[e]}</small></label>`).join("");
 const selectedEras = () => [...document.querySelectorAll("#eras input:checked")].map(i => i.value);
 function renderStatus() {
   const L = levelOf(save.exp);
@@ -596,7 +596,9 @@ function refreshHome() {
   renderStatus();
   $("missCount").textContent = miss.size;
   $("review").disabled = miss.size === 0;
-  $("start").disabled = selectedEras().length === 0;
+  const none = selectedEras().length === 0;
+  $("start").disabled = none;
+  $("start").textContent = none ? "じだいを えらんでね" : "たたかう";
   say("guideHome", "normal", line(miss.size >= 5 && Math.random() < 0.4 ? "review" : "home"));
 }
 $("eras").addEventListener("change", refreshHome);
