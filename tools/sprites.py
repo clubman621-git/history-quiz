@@ -1,4 +1,4 @@
-"""ドット絵（しおり・モンスター・宝箱）を SVG にして index.html の SPRITES に書き込む。
+"""ドット絵（サカ・モンスター・宝箱）を SVG にして index.html の SPRITES に書き込む。
 絵を直したいときはこのファイルの文字の絵を書きかえて  python3 tools/sprites.py  を実行する。
 """
 import os, re, json, runpy
@@ -164,7 +164,7 @@ CHEST_OPEN = [
   "KKKKKKKKKKKK",
 ]
 
-# しおり（char_src.py が /tmp に書き出す SVG を使う）
+# サカ（char_src.py が /tmp に書き出す SVG を使う）
 ns = runpy.run_path(os.path.join(ROOT, "tools", "char_src.py"))
 char_svg = open("/tmp/px/char.svg").read()
 
