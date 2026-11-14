@@ -2,9 +2,9 @@ import os
 import math, json, sys
 W,H=32,36
 PAL={"K":"#2a1f3d","H":"#1c1a26","h":"#4a4560","S":"#ffeee6","s":"#f3d2c6",
-     "Y":"#fbbf24","y":"#b45309","E":"#5b0f2e","e":"#f43f5e","W":"#ffffff","B":"#fbb6ce","M":"#9f1239",
-     "G":"#5b5470","g":"#a59dbb","D":"#3b1f5c","d":"#24123d","r":"#be123c","R":"#e11d48",
-     "V":"#4c2a85","v":"#2a1442","T":"#93c5fd","p":"#f9a8d4"}
+     "Y":"#fbbf24","y":"#b45309","Z":"#fde68a","E":"#4c2a85","e":"#a78bfa","W":"#ffffff","B":"#fbb6ce","M":"#c0567a",
+     "D":"#f472b6","d":"#db2777","X":"#fbcfe8","L":"#ffffff","l":"#e9e3f5","J":"#3b82f6","R":"#e11d48",
+     "T":"#93c5fd","p":"#f9a8d4"}
 def blank(): return [["." for _ in range(W)] for _ in range(H)]
 g=blank()
 def put(x,y,c,grid=None):
@@ -19,27 +19,25 @@ ell(16,15,12.5,12,"H")
 for y in range(15,30):
     for x in range(4,28):
         if y<29 or 6<=x<=25: put(x,y,"H")
-# wings (behind)
-WING={13:(0,),14:(0,1),15:(0,1,2),16:(0,1,2,3),17:(0,1,2,3),18:(0,1,2,3,4),19:(0,1,2,3,4),
-      20:(0,1,2,3,4),21:(1,2,3,4),22:(0,2,3,4),23:(3,4),24:(4,)}
-RIB={(1,16),(1,17),(2,18),(2,19),(2,20)}
-for y,xs in WING.items():
-    for x in xs:
-        c="v" if (x,y) in RIB else "V"
-        put(x,y,c); put(31-x,y,c)
-# cape body
+# dress (pink) with puffy white sleeves
 for y in range(28,36):
     w=8+min(y-28,3)
-    for x in range(16-w,16+w): put(x,y,"D")
-for y in range(30,36):
-    put(16-11,y,"d"); put(16+10,y,"d")
-# high collar (red lining)
-for y in range(23,29):
-    for x in (9,10,11): put(x,y,"D" if x==9 or y==23 else "r")
-    for x in (20,21,22): put(x,y,"D" if x==22 or y==23 else "r")
-# brooch
-for x,y in [(15,29),(16,29),(15,30),(16,30)]: put(x,y,"Y")
-put(15,29,"R"); put(16,30,"R")
+    for x in range(16-w,16+w): put(x,y,"D" if abs(x-15.5)<w-2 else "d")
+for y in range(31,36):
+    for x in (13,14,17,18): put(x,y,"X")
+# puffy sleeves
+for (cx) in (7,24):
+    for y in range(27,33):
+        for x in range(cx,cx+2+5):
+            if ((x-cx-3)/3.6)**2+((y-29.7)/2.9)**2<=1: put(x,y,"L" if y<30 else "l")
+# lace collar
+for i,y in enumerate(range(27,30)):
+    for x in range(12-i,20+i):
+        if y==29 and x%2: continue
+        put(x,y,"L")
+# necklace + gem
+for x in range(13,19): put(x,30,"Y")
+put(15,31,"J"); put(16,31,"J")
 # neck
 for y in range(24,28):
     for x in range(14,18): put(x,y,"s" if y==24 else "S")
@@ -53,15 +51,19 @@ for x in range(7,25):
         if g[y][x] in "S.H": put(x,y,"H")
 # hair highlight arc
 for x,y in [(11,6),(12,5),(13,5),(14,5),(15,5)]: put(x,y,"h")
-# horns
-HORN=[(7,5,"G"),(8,5,"g"),(9,5,"G"),(6,4,"G"),(7,4,"g"),(8,4,"G"),(5,3,"G"),(6,3,"g"),(7,3,"G"),
-      (5,2,"G"),(6,2,"g"),(5,1,"G"),(6,1,"G"),(6,0,"G")]
-for x,y,c in HORN:
-    put(x,y,c); put(31-x,y,c)
-# circlet + gem
-for x in range(10,22): put(x,8,"Y")
-for x,y in [(15,8),(16,8),(15,9),(16,9)]: put(x,y,"R")
-put(15,8,"p")
+# crown
+CROWN=["Y...Y...Y",
+       "YY.YYY.YY",
+       "YYYYYYYYY",
+       "YRYZJZYRY",
+       "yyyyyyyyy"]
+for dy,row in enumerate(CROWN):
+    for dx,c in enumerate(row):
+        if c!=".": put(12+dx,1+dy,c)
+put(12,0,"Z"); put(16,0,"Z"); put(20,0,"Z")
+# side ribbons
+for x,y in [(4,12),(5,12),(3,13),(4,13),(5,13),(6,13),(4,14),(5,14)]: put(x,y,"D"); put(31-x,y,"D")
+put(4,13,"d"); put(27,13,"d")
 # blush
 for x in (9,10,21,22): put(x,21,"B")
 base=[r[:] for r in g]
@@ -88,13 +90,13 @@ for ex in (9,19):
         for dx,c in enumerate(row):
             if c!=".": normal.append((ex+dx,15+dy,c))
 normal+=[(8,15,"K"),(23,15,"K")]
-normal+=[(14,21,"M"),(15,22,"M"),(16,22,"M"),(17,22,"M"),(18,21,"M"),(17,23,"W")]
+normal+=[(14,21,"M"),(15,22,"M"),(16,22,"M"),(17,21,"M")]
 face("normal",normal)
 happy=[]
 for ex in (9,19):
     happy+=[(ex,18,"E"),(ex+1,17,"E"),(ex+2,17,"E"),(ex+3,18,"E")]
 happy+=[(14,21,"M"),(15,21,"M"),(16,21,"M"),(17,21,"M"),(15,22,"M"),(16,22,"M")]
-happy+=[(17,23,"W"),(27,9,"R"),(26,10,"R"),(27,10,"R"),(28,10,"R"),(27,11,"R"),(3,11,"p"),(4,10,"p"),(4,11,"p"),(5,11,"p"),(4,12,"p")]
+happy+=[(27,6,"Z"),(26,7,"Z"),(27,7,"Z"),(28,7,"Z"),(27,8,"Z"),(3,8,"p"),(4,7,"p"),(4,8,"p"),(5,8,"p"),(4,9,"p")]
 face("happy",happy)
 oops=[]
 for (x,y) in [(10,16),(11,17),(12,18),(11,19),(10,20)]: oops.append((x,y,"E"))
