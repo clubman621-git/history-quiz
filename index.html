@@ -132,7 +132,7 @@
 <template id="charTpl">
 <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <!-- 後ろ髪 -->
-  <path d="M18 66 C14 30 38 12 60 12 C84 12 106 30 102 66 C104 92 100 112 92 122 L28 122 C20 112 16 92 18 66 Z" fill="#9f7aea"/>
+  <path d="M18 66 C14 30 38 12 60 12 C84 12 106 30 102 66 C104 92 100 112 92 122 L28 122 C20 112 16 92 18 66 Z" fill="#1c1a26"/>
   <!-- 体 -->
   <path d="M30 140 C30 118 42 108 60 108 C78 108 90 118 90 140 Z" fill="#c4b5fd"/>
   <path d="M46 110 L60 126 L74 110 C70 108 66 107 60 107 C54 107 50 108 46 110 Z" fill="#fff"/>
@@ -141,8 +141,8 @@
   <!-- 顔 -->
   <ellipse cx="60" cy="68" rx="33" ry="31" fill="#ffeee6"/>
   <!-- 前髪 -->
-  <path d="M26 64 C24 36 42 22 60 22 C80 22 98 36 94 64 C90 52 84 44 78 40 C76 48 70 52 64 54 C66 46 64 40 62 38 C56 48 46 54 34 56 C30 58 28 60 26 64 Z" fill="#b794f4"/>
-  <path d="M40 30 C48 24 58 22 66 24" stroke="#e9d8fd" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M26 64 C24 36 42 22 60 22 C80 22 98 36 94 64 C90 52 84 44 78 40 C76 48 70 52 64 54 C66 46 64 40 62 38 C56 48 46 54 34 56 C30 58 28 60 26 64 Z" fill="#2b2838"/>
+  <path d="M40 30 C48 24 58 22 66 24" stroke="#57526e" stroke-width="3" fill="none" stroke-linecap="round"/>
   <!-- ヘッドホン -->
   <path d="M22 62 C20 26 44 10 60 10 C78 10 100 26 98 62" stroke="#f9a8d4" stroke-width="6" fill="none" stroke-linecap="round"/>
   <rect x="12" y="56" width="16" height="24" rx="8" fill="#f472b6"/>
@@ -377,13 +377,117 @@ function build(q) {
 }
 
 // ---- 案内役「しおり」----
+// セリフは種類ごとに山札にして順番に出す → ぜんぶ出し切るまで同じセリフは出ない
+// {n} は連続回数に置きかわる。セリフを増やすときは配列に足すだけでOK。
 const LINES = {
-  home: ["今日もいっしょに年号マスターしよ♪", "時代をえらんでスタートしてね！", "まちがえた問題は、あとで復習できるよ☆"],
-  ask: ["どれかな？", "落ち着いて考えてみよ！", "わかるかな〜？", "これ、テストに出やすいよ！"],
-  ok: ["やったね！完璧♪", "その調子！", "さすが〜！✨", "天才じゃん！", "ばっちり覚えてるね！"],
-  ng: ["どんまい！次はいけるよ", "ここ、いっしょに覚えよ！", "おしい〜！もう一回見てみて", "まちがえた所は復習リストに入れたよ"],
+  home: [
+    "また来たのね。いいわ、相手してあげる",
+    "年号なんて私にかかれば朝飯前よ。あなたは？",
+    "ふふ…今日は何問まちがえるのかしら？",
+    "さぁ時代をえらびなさい。手加減はしないわよ",
+    "まさか昨日サボってたんじゃないでしょうね？",
+    "私に勝てるかしら。かかってらっしゃい",
+    "ようこそ、年号の迷宮へ…なんてね",
+    "暇なの？ …いいわ、私も暇だったし",
+    "今日こそ泣かせてあげるわ。ふふふ",
+    "鎌倉幕府の年号、まだ覚えてる？ 怪しいわね〜",
+  ],
+  review: [
+    "まちがえた問題、たまってるわよ〜？ 見ないふり？",
+    "復習リストが私を呼んでるわ。逃がさないわよ",
+  ],
+  ask: [
+    "さぁ、答えてごらんなさい",
+    "これは簡単すぎたかしら？",
+    "ふふ、迷ってる顔、見ものね",
+    "ひっかけかもよ〜？",
+    "テストに出るやつよ、これ",
+    "3秒で答えなさい。…うそうそ",
+    "知ってるはずよ。思い出して",
+    "私は答え知ってるけど、教えなーい",
+    "ここでまちがえたら笑っちゃうかも",
+    "ほらほら、手が止まってるわよ",
+    "これ、私のお気に入りの問題なの",
+    "勘で押したら、すぐバレるわよ",
+    "ゆっくりでいいわ。…5秒だけね",
+    "さて、どれが本物かしら？",
+  ],
+  ok: [
+    "ちっ…正解よ",
+    "ふーん、やるじゃない。まぐれ？",
+    "べ、別にほめてないんだからね",
+    "正解。…つまらないわね",
+    "私の次くらいにはすごいわ",
+    "なかなかやるわね。認めてあげてもいいわ",
+    "正解！…って、なんで私が喜んでるのよ",
+    "ふふん、私が教えた甲斐があったわね",
+    "当たり。調子に乗らないことね",
+    "ぐぬぬ…完璧じゃない",
+    "あら正解。今日は冴えてるのね",
+    "その年号、もう忘れないでよ？",
+    "正解よ。ごほうびに…何もあげないけど",
+    "はいはい、正解正解。次いくわよ",
+  ],
+  ng: [
+    "はい残念〜♪",
+    "ふふっ、ひっかかったわね",
+    "あらあら、歴史の先生が泣いてるわよ",
+    "その答え、何時代から来たの？",
+    "まちがえた問題はリストに入れたわ。逃がさないわよ",
+    "惜しい…って言ってほしい？ 言わないけど",
+    "ドンマイ。…なんて私が言うと思った？",
+    "今のは聞かなかったことにしてあげる。今回だけよ",
+    "次まちがえたら、おしおきよ♪",
+    "ほら、正解をよーく見て。覚えるまで出すからね",
+    "ふーん、そう来たか。ハズレよ",
+    "その間違い方、ある意味天才ね",
+    "歴史が書きかわっちゃったわね。ハズレ",
+    "残念。でも、ここで覚えれば勝ちよ",
+  ],
+  streakOk: [
+    "{n}連続正解…？ ちょっと、やりすぎじゃない？",
+    "{n}連続！ …私のライバルとして認めてあげる",
+    "{n}連続ですって？ 生意気ね…",
+    "{n}連続…ズルしてないでしょうね？",
+  ],
+  streakNg: [
+    "{n}連続ハズレ…私の出番みたいね",
+    "落ち着きなさい。深呼吸よ。…私は笑ってるけど",
+    "ちょっと〜、寝てるの？",
+    "{n}連続でハズレなんて、逆にむずかしいわよ？",
+  ],
+  perfect: [
+    "パーフェクト…ですって？ くやしいけど今日はあなたの勝ちよ",
+    "全問正解…ふん、次はもっとむずかしくしてやるんだから",
+    "満点…！ べ、別にくやしくなんかないんだからね",
+  ],
+  good: [
+    "なかなかね。でも満点じゃないのが惜しいわね〜",
+    "ふふ、あと少しで私に並べたのに",
+    "やるじゃない。…次は満点、取れるわよね？",
+  ],
+  soso: [
+    "半分以上は正解。まぁまぁね。まちがえた所、逃がさないわよ",
+    "悪くないわ。でも私を満足させるにはまだまだね",
+    "ふーん、ふつうね。ふつうって一番つまらないのよ？",
+  ],
+  bad: [
+    "あらあら…これは特訓が必要ね。付き合ってあげてもいいわよ",
+    "今日のところは見逃してあげる。次はちゃんと覚えてきなさい",
+    "ふふ、伸びしろしかないわね。…ほめてないわよ？",
+  ],
 };
-const pick = a => a[Math.floor(Math.random() * a.length)];
+const bags = {};
+let lastLine = "";
+function line(cat, n) {
+  if (!bags[cat] || !bags[cat].length) {
+    bags[cat] = shuffle(LINES[cat]);
+    // 山札を作り直したときに、直前と同じセリフが続かないようにする
+    if (bags[cat].length > 1 && bags[cat][bags[cat].length - 1] === lastLine) bags[cat].unshift(bags[cat].pop());
+  }
+  lastLine = bags[cat].pop();
+  return lastLine.replace("{n}", n);
+}
 const GUIDE_KEY = "history-quiz-guide-v1";
 document.querySelectorAll(".guide").forEach(g => g.prepend(document.getElementById("charTpl").content.cloneNode(true)));
 function say(id, face, text) {
@@ -410,7 +514,7 @@ function refreshHome() {
   $("missCount").textContent = miss.size;
   $("review").disabled = miss.size === 0;
   $("start").disabled = selectedEras().length === 0;
-  say("guideHome", "normal", pick(LINES.home));
+  say("guideHome", "normal", line(miss.size >= 5 && Math.random() < 0.4 ? "review" : "home"));
 }
 $("eras").addEventListener("change", refreshHome);
 applyGuide($("showGuide").checked);
@@ -420,7 +524,7 @@ let round = null; // { list, i, right, wrong:[], answered, mode }
 
 function startRound(list, mode) {
   if (!list.length) { show("home"); refreshHome(); return; }
-  round = { list, i: 0, right: 0, wrong: [], answered: false, mode };
+  round = { list, i: 0, right: 0, wrong: [], answered: false, mode, streak: 0 };
   show("quiz");
   render();
 }
@@ -447,7 +551,7 @@ function render() {
   $("kind").textContent = `${q.item.era}・${b.kind}`;
   $("question").textContent = b.text;
   $("feedback").innerHTML = "";
-  say("guideQuiz", "normal", pick(LINES.ask));
+  say("guideQuiz", "normal", line("ask"));
   $("next").hidden = true;
   $("choices").innerHTML = "";
   for (const c of b.choices) {
@@ -474,13 +578,15 @@ function answer(btn, value) {
     round.right++;
     miss.delete(id);
     $("feedback").innerHTML = `<b class="ok">⭕ 正解！</b><br>${fact}`;
-    say("guideQuiz", "happy", pick(LINES.ok));
+    round.streak = round.streak > 0 ? round.streak + 1 : 1;
+    say("guideQuiz", "happy", round.streak >= 3 && round.streak % 2 === 1 ? line("streakOk", round.streak) : line("ok"));
   } else {
     btn.classList.add("ng");
     round.wrong.push(fact);
     miss.add(id);
     $("feedback").innerHTML = `<b class="ng">❌ ざんねん</b><br>${fact}`;
-    say("guideQuiz", "oops", pick(LINES.ng));
+    round.streak = round.streak < 0 ? round.streak - 1 : -1;
+    say("guideQuiz", "oops", round.streak <= -2 && round.streak % 2 === 0 ? line("streakNg", -round.streak) : line("ng"));
   }
   saveMiss(miss);
   $("right").textContent = `正解 ${round.right}`;
@@ -499,8 +605,7 @@ function finish(quit) {
   const pct = total ? Math.round(round.right / total * 100) : 0;
   $("score").textContent = `${round.right} / ${total}`;
   $("scoreMsg").textContent = `正答率 ${pct}%`;
-  const msg = pct === 100 ? "パーフェクト！🎉 最高のステージだったね！" : pct >= 80 ? "すばらしい！あと少しで全問正解だよ✨"
-    : pct >= 50 ? "いい調子！まちがえた所を復習しよ♪" : "くりかえせば必ず覚えられるよ。いっしょにがんばろ！";
+  const msg = line(pct === 100 ? "perfect" : pct >= 80 ? "good" : pct >= 50 ? "soso" : "bad");
   say("guideResult", pct >= 50 ? "happy" : "oops", msg);
   const uniq = [...new Set(round.wrong)];
   $("missTitle").hidden = $("missBox").hidden = uniq.length === 0;
