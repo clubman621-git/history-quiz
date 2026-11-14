@@ -1,5 +1,5 @@
 // オフライン用のキャッシュ。index.html などを更新したら VERSION の数字を上げる。
-const VERSION = "history-quiz-v1";
+const VERSION = "history-quiz-v2";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-180.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", e => {

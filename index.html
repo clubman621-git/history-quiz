@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#8c2f1f">
+<meta name="theme-color" content="#e2d1ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="歴史クイズ">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -13,62 +13,182 @@
 <title>歴史 年号クイズ</title>
 <style>
   :root {
-    --bg: #f6efe2; --card: #fffaf1; --ink: #2b211b; --sub: #7a6a5c;
-    --accent: #8c2f1f; --ok: #2e7d4f; --ng: #b3261e; --line: #e2d6c3;
+    --ink: #3b2a57; --sub: #7d6a9c; --accent: #8b5cf6; --accent2: #ec4899;
+    --ok: #10b981; --ng: #f43f5e; --line: #e4d7fb; --card: rgba(255,255,255,.82);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { min-height: 100%; background: linear-gradient(160deg, #efe4ff 0%, #e2d1ff 38%, #f6dcf2 72%, #fdeef6 100%); background-color: #fdeef6; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
-    padding: env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom));
+    margin: 0; color: var(--ink); min-height: 100vh;
+    font-family: -apple-system, "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    padding: calc(8px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom));
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,.7) 0 2px, transparent 3px),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,.8) 0 2px, transparent 3px),
+      radial-gradient(circle at 70% 42%, rgba(255,255,255,.6) 0 1.5px, transparent 2.5px),
+      radial-gradient(circle at 24% 70%, rgba(255,255,255,.6) 0 1.5px, transparent 2.5px),
+      radial-gradient(circle at 90% 84%, rgba(255,255,255,.7) 0 2px, transparent 3px);
   }
   main { max-width: 520px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 20px 0 4px; color: var(--accent); }
-  .lead { color: var(--sub); font-size: 14px; margin: 0 0 16px; }
-  h2 { font-size: 15px; margin: 20px 0 8px; color: var(--sub); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
-  .eras { display: flex; flex-wrap: wrap; gap: 8px; }
+  h1 {
+    font-size: 26px; margin: 14px 0 2px; letter-spacing: .02em;
+    background: linear-gradient(90deg, #7c3aed, #c026d3, #ec4899);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { color: var(--sub); font-size: 15px; margin: 0 0 8px; }
+  h2 { font-size: 16px; margin: 22px 0 10px; color: var(--sub); }
+  .card {
+    background: var(--card); border: 1.5px solid #fff; border-radius: 22px; padding: 18px;
+    box-shadow: 0 6px 20px rgba(139,92,246,.15); backdrop-filter: blur(6px);
+  }
+
+  /* 案内役 */
+  .guide { display: flex; align-items: flex-end; gap: 6px; margin: 6px 0 4px; }
+  .guide svg { flex: none; filter: drop-shadow(0 4px 8px rgba(139,92,246,.25)); }
+  .guide.big svg { width: 120px; height: 140px; }
+  .guide.small svg { width: 76px; height: 88px; }
+  .bubble {
+    position: relative; flex: 1; background: #fff; border-radius: 18px; padding: 12px 14px;
+    font-size: 16px; font-weight: 700; line-height: 1.5; color: var(--ink);
+    box-shadow: 0 4px 14px rgba(139,92,246,.18); margin-bottom: 18px;
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: -9px; bottom: 16px;
+    border: 9px solid transparent; border-right-color: #fff; border-left: 0;
+  }
+  .bubble .name { display: block; font-size: 12px; color: var(--accent2); margin-bottom: 2px; }
+  .guide.pop svg { animation: pop .45s ease; }
+  @keyframes pop { 0%{transform:translateY(0)} 35%{transform:translateY(-10px)} 70%{transform:translateY(2px)} 100%{transform:translateY(0)} }
+  .noguide .guide { display: none !important; }
+
+  /* 選択（時代・問題数）*/
+  .eras { display: flex; flex-wrap: wrap; gap: 10px; }
   .eras label {
-    border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
-    font-size: 15px; background: #fff; user-select: none;
+    border: 2px solid #fff; border-radius: 999px; padding: 12px 18px; min-height: 52px;
+    display: inline-flex; align-items: center; font-size: 17px; font-weight: 700;
+    background: rgba(255,255,255,.7); color: var(--sub); user-select: none;
   }
-  .eras input { display: none; }
-  .eras label:has(input:checked) { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .row label { flex: 1; min-width: 90px; text-align: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px 4px; background: #fff; font-size: 14px; }
-  .row input { display: none; }
-  .row label:has(input:checked) { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .eras small { font-weight: 400; font-size: 12px; opacity: .8; margin-left: 2px; }
+  .eras input, .row input { display: none; }
+  .eras label:has(input:checked) {
+    background: linear-gradient(135deg, #a78bfa, #e879f9); color: #fff; border-color: #fff;
+    box-shadow: 0 4px 12px rgba(167,139,250,.45);
+  }
+  .row { display: flex; gap: 10px; }
+  .row label {
+    flex: 1; min-height: 58px; display: flex; align-items: center; justify-content: center;
+    border: 2px solid #fff; border-radius: 16px; background: rgba(255,255,255,.7);
+    font-size: 18px; font-weight: 700; color: var(--sub);
+  }
+  .row label:has(input:checked) { border-color: var(--accent); color: var(--accent); background: #fff; }
+  .toggle { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; font-size: 16px; font-weight: 700; color: var(--sub); min-height: 52px; }
+  .toggle input { width: 54px; height: 32px; appearance: none; -webkit-appearance: none; background: #d8cbef; border-radius: 999px; position: relative; transition: background .2s; }
+  .toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .toggle input:checked { background: linear-gradient(135deg, #a78bfa, #e879f9); }
+  .toggle input:checked::after { left: 25px; }
+
+  /* ボタン */
   button {
-    font: inherit; border: 0; border-radius: 12px; padding: 14px; width: 100%;
-    font-size: 17px; font-weight: 700; cursor: pointer;
+    font: inherit; border: 0; border-radius: 20px; width: 100%; min-height: 64px; padding: 16px;
+    font-size: 20px; font-weight: 800; cursor: pointer; letter-spacing: .03em;
+    transition: transform .08s;
   }
-  .primary { background: var(--accent); color: #fff; margin-top: 16px; }
-  .ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); margin-top: 10px; }
-  button:disabled { opacity: .4; }
-  .progress { display: flex; justify-content: space-between; color: var(--sub); font-size: 14px; margin: 16px 0 8px; }
-  .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
-  .bar div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
-  .kind { font-size: 13px; color: var(--sub); margin-bottom: 6px; }
-  .question { font-size: 21px; font-weight: 700; line-height: 1.5; margin-bottom: 4px; }
-  .choices { display: grid; gap: 10px; margin-top: 16px; }
-  .choice { background: #fff; border: 2px solid var(--line); color: var(--ink); text-align: left; font-weight: 600; padding: 14px 16px; }
-  .choice.ok { border-color: var(--ok); background: #e7f4ec; }
-  .choice.ng { border-color: var(--ng); background: #fbe9e7; }
-  .feedback { margin-top: 14px; font-size: 15px; line-height: 1.6; min-height: 1em; }
+  button:active { transform: scale(.97); }
+  .primary {
+    background: linear-gradient(135deg, #8b5cf6, #d946ef 60%, #ec4899); color: #fff; margin-top: 18px;
+    box-shadow: 0 6px 16px rgba(217,70,239,.35);
+  }
+  .ghost { background: rgba(255,255,255,.75); color: var(--accent); border: 2px solid #fff; margin-top: 12px; }
+  button:disabled { opacity: .45; }
+
+  /* 出題 */
+  .progress { display: flex; justify-content: space-between; color: var(--sub); font-size: 15px; font-weight: 700; margin: 12px 0 8px; }
+  .bar { height: 10px; background: rgba(255,255,255,.7); border-radius: 5px; overflow: hidden; margin-bottom: 10px; }
+  .bar div { height: 100%; background: linear-gradient(90deg, #a78bfa, #f472b6); width: 0; transition: width .25s; border-radius: 5px; }
+  .kind { font-size: 13px; color: var(--accent2); font-weight: 700; margin-bottom: 6px; }
+  .question { font-size: 23px; font-weight: 800; line-height: 1.5; }
+  .choices { display: grid; gap: 12px; margin-top: 16px; }
+  .choice {
+    background: rgba(255,255,255,.92); border: 2.5px solid #fff; color: var(--ink); text-align: left;
+    font-weight: 700; font-size: 19px; line-height: 1.4; min-height: 72px; padding: 14px 18px;
+    box-shadow: 0 3px 10px rgba(139,92,246,.12);
+  }
+  .choice.ok { border-color: var(--ok); background: #e3f9f0; }
+  .choice.ng { border-color: var(--ng); background: #ffe8ee; }
+  .feedback { margin-top: 14px; font-size: 16px; line-height: 1.6; }
+  .feedback:empty { display: none; }
   .feedback b.ok { color: var(--ok); } .feedback b.ng { color: var(--ng); }
-  .score { font-size: 44px; font-weight: 800; color: var(--accent); text-align: center; margin: 8px 0; }
-  .center { text-align: center; color: var(--sub); }
-  ul.miss { padding-left: 18px; line-height: 1.7; font-size: 15px; }
-  .note { font-size: 13px; color: var(--sub); margin-top: 18px; line-height: 1.6; }
+
+  /* 結果 */
+  .score { font-size: 52px; font-weight: 900; text-align: center; margin: 4px 0;
+    background: linear-gradient(90deg, #8b5cf6, #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .center { text-align: center; color: var(--sub); font-weight: 700; }
+  ul.miss { padding-left: 20px; margin: 0; line-height: 1.8; font-size: 16px; }
+  .note { font-size: 13px; color: var(--sub); margin-top: 14px; line-height: 1.6; }
   [hidden] { display: none !important; }
 </style>
 </head>
 <body>
+<template id="charTpl">
+<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- 後ろ髪 -->
+  <path d="M18 66 C14 30 38 12 60 12 C84 12 106 30 102 66 C104 92 100 112 92 122 L28 122 C20 112 16 92 18 66 Z" fill="#9f7aea"/>
+  <!-- 体 -->
+  <path d="M30 140 C30 118 42 108 60 108 C78 108 90 118 90 140 Z" fill="#c4b5fd"/>
+  <path d="M46 110 L60 126 L74 110 C70 108 66 107 60 107 C54 107 50 108 46 110 Z" fill="#fff"/>
+  <path d="M56 120 L60 128 L64 120 Z" fill="#f472b6"/>
+  <rect x="54" y="98" width="12" height="12" rx="4" fill="#ffe4dc"/>
+  <!-- 顔 -->
+  <ellipse cx="60" cy="68" rx="33" ry="31" fill="#ffeee6"/>
+  <!-- 前髪 -->
+  <path d="M26 64 C24 36 42 22 60 22 C80 22 98 36 94 64 C90 52 84 44 78 40 C76 48 70 52 64 54 C66 46 64 40 62 38 C56 48 46 54 34 56 C30 58 28 60 26 64 Z" fill="#b794f4"/>
+  <path d="M40 30 C48 24 58 22 66 24" stroke="#e9d8fd" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- ヘッドホン -->
+  <path d="M22 62 C20 26 44 10 60 10 C78 10 100 26 98 62" stroke="#f9a8d4" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <rect x="12" y="56" width="16" height="24" rx="8" fill="#f472b6"/>
+  <rect x="92" y="56" width="16" height="24" rx="8" fill="#f472b6"/>
+  <circle cx="20" cy="68" r="4" fill="#fbcfe8"/><circle cx="100" cy="68" r="4" fill="#fbcfe8"/>
+  <!-- 星のヘアピン -->
+  <path d="M84 34 l3 6 6 1 -4.5 4 1 6.5 -5.5-3 -5.5 3 1-6.5 -4.5-4 6-1 z" fill="#fde047" stroke="#facc15" stroke-width="1"/>
+  <!-- ほっぺ -->
+  <ellipse cx="38" cy="80" rx="6" ry="3.5" fill="#fbb6ce" opacity=".8"/>
+  <ellipse cx="82" cy="80" rx="6" ry="3.5" fill="#fbb6ce" opacity=".8"/>
+  <!-- 表情：ふつう -->
+  <g class="f-normal">
+    <ellipse cx="46" cy="70" rx="6" ry="8" fill="#5b3a8c"/><ellipse cx="74" cy="70" rx="6" ry="8" fill="#5b3a8c"/>
+    <ellipse cx="46" cy="73" rx="4" ry="4" fill="#9f7aea"/><ellipse cx="74" cy="73" rx="4" ry="4" fill="#9f7aea"/>
+    <circle cx="48" cy="66" r="2.4" fill="#fff"/><circle cx="76" cy="66" r="2.4" fill="#fff"/>
+    <path d="M54 86 Q60 91 66 86" stroke="#c0567a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- 表情：うれしい -->
+  <g class="f-happy">
+    <path d="M39 72 Q46 63 53 72" stroke="#5b3a8c" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M67 72 Q74 63 81 72" stroke="#5b3a8c" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M52 83 Q60 95 68 83 Z" fill="#e2557f"/>
+    <path d="M104 30 l2 4 4 1 -3 3 1 4 -4-2 -4 2 1-4 -3-3 4-1 z" fill="#fde047"/>
+    <path d="M14 34 l1.5 3 3 .7 -2.2 2 .6 3 -2.9-1.5 -2.9 1.5 .6-3 -2.2-2 3-.7 z" fill="#f9a8d4"/>
+  </g>
+  <!-- 表情：どんまい -->
+  <g class="f-oops">
+    <path d="M40 66 L52 71 L40 76" stroke="#5b3a8c" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M80 66 L68 71 L80 76" stroke="#5b3a8c" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M53 88 Q56.5 85 60 88 Q63.5 91 67 88" stroke="#c0567a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="M90 46 C88 50 88 53 90 54 C92 53 92 50 90 46 Z" fill="#93c5fd"/>
+  </g>
+</svg>
+</template>
+<style>
+  .guide svg .f-happy, .guide svg .f-oops { display: none; }
+  .guide[data-face="happy"] svg .f-normal, .guide[data-face="oops"] svg .f-normal { display: none; }
+  .guide[data-face="happy"] svg .f-happy { display: inline; }
+  .guide[data-face="oops"] svg .f-oops { display: inline; }
+</style>
 <main>
   <!-- スタート画面 -->
   <section id="home">
     <h1>歴史 年号クイズ</h1>
     <p class="lead">年号とできごと・人物を4択でおぼえよう</p>
+    <div class="guide big" id="guideHome"><div class="bubble"><span class="name">ナビ・しおり</span><span class="line"></span></div></div>
 
     <h2>時代をえらぶ</h2>
     <div class="eras" id="eras"></div>
@@ -82,6 +202,7 @@
 
     <button class="primary" id="start">スタート</button>
     <button class="ghost" id="review">まちがえた問題だけ（<span id="missCount">0</span>問）</button>
+    <label class="toggle">案内役のしおりを表示する<input type="checkbox" id="showGuide" checked></label>
     <p class="note">まちがえた問題はこの端末に記録され、正解すると消えます。</p>
   </section>
 
@@ -94,6 +215,7 @@
       <div class="question" id="question"></div>
     </div>
     <div class="choices" id="choices"></div>
+    <div class="guide small" id="guideQuiz"><div class="bubble"><span class="name">しおり</span><span class="line"></span></div></div>
     <div class="feedback" id="feedback"></div>
     <button class="primary" id="next" hidden>つぎへ</button>
     <button class="ghost" id="quit">やめる</button>
@@ -106,6 +228,7 @@
       <div class="score" id="score"></div>
       <div class="center" id="scoreMsg"></div>
     </div>
+    <div class="guide big" id="guideResult"><div class="bubble"><span class="name">しおり</span><span class="line"></span></div></div>
     <h2 id="missTitle">まちがえた問題</h2>
     <div class="card" id="missBox"><ul class="miss" id="missList"></ul></div>
     <button class="primary" id="again">もう一度</button>
@@ -253,6 +376,28 @@ function build(q) {
            choices: shuffle([it.person, ...pickDistractors(pool, it.person, 3)]) };
 }
 
+// ---- 案内役「しおり」----
+const LINES = {
+  home: ["今日もいっしょに年号マスターしよ♪", "時代をえらんでスタートしてね！", "まちがえた問題は、あとで復習できるよ☆"],
+  ask: ["どれかな？", "落ち着いて考えてみよ！", "わかるかな〜？", "これ、テストに出やすいよ！"],
+  ok: ["やったね！完璧♪", "その調子！", "さすが〜！✨", "天才じゃん！", "ばっちり覚えてるね！"],
+  ng: ["どんまい！次はいけるよ", "ここ、いっしょに覚えよ！", "おしい〜！もう一回見てみて", "まちがえた所は復習リストに入れたよ"],
+};
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const GUIDE_KEY = "history-quiz-guide-v1";
+document.querySelectorAll(".guide").forEach(g => g.prepend(document.getElementById("charTpl").content.cloneNode(true)));
+function say(id, face, text) {
+  const g = document.getElementById(id);
+  g.dataset.face = face;
+  g.querySelector(".line").textContent = text;
+  g.classList.remove("pop"); void g.offsetWidth; if (face === "happy") g.classList.add("pop");
+}
+function applyGuide(on) {
+  document.body.classList.toggle("noguide", !on);
+  try { localStorage.setItem(GUIDE_KEY, on ? "1" : "0"); } catch {}
+}
+try { document.getElementById("showGuide").checked = localStorage.getItem(GUIDE_KEY) !== "0"; } catch {}
+
 // ---- 画面 ----
 const $ = id => document.getElementById(id);
 const show = id => ["home", "quiz", "result"].forEach(s => $(s).hidden = s !== id);
@@ -265,8 +410,11 @@ function refreshHome() {
   $("missCount").textContent = miss.size;
   $("review").disabled = miss.size === 0;
   $("start").disabled = selectedEras().length === 0;
+  say("guideHome", "normal", pick(LINES.home));
 }
 $("eras").addEventListener("change", refreshHome);
+applyGuide($("showGuide").checked);
+$("showGuide").addEventListener("change", e => applyGuide(e.target.checked));
 
 let round = null; // { list, i, right, wrong:[], answered, mode }
 
@@ -299,6 +447,7 @@ function render() {
   $("kind").textContent = `${q.item.era}・${b.kind}`;
   $("question").textContent = b.text;
   $("feedback").innerHTML = "";
+  say("guideQuiz", "normal", pick(LINES.ask));
   $("next").hidden = true;
   $("choices").innerHTML = "";
   for (const c of b.choices) {
@@ -325,11 +474,13 @@ function answer(btn, value) {
     round.right++;
     miss.delete(id);
     $("feedback").innerHTML = `<b class="ok">⭕ 正解！</b><br>${fact}`;
+    say("guideQuiz", "happy", pick(LINES.ok));
   } else {
     btn.classList.add("ng");
     round.wrong.push(fact);
     miss.add(id);
     $("feedback").innerHTML = `<b class="ng">❌ ざんねん</b><br>${fact}`;
+    say("guideQuiz", "oops", pick(LINES.ng));
   }
   saveMiss(miss);
   $("right").textContent = `正解 ${round.right}`;
@@ -347,7 +498,10 @@ function finish(quit) {
   const total = quit ? round.i + (round.answered ? 1 : 0) : round.list.length;
   const pct = total ? Math.round(round.right / total * 100) : 0;
   $("score").textContent = `${round.right} / ${total}`;
-  $("scoreMsg").textContent = pct === 100 ? "パーフェクト！🎉" : pct >= 80 ? "すばらしい！" : pct >= 50 ? "いい調子！まちがえた所を復習しよう" : "くりかえすと必ず覚えられるよ";
+  $("scoreMsg").textContent = `正答率 ${pct}%`;
+  const msg = pct === 100 ? "パーフェクト！🎉 最高のステージだったね！" : pct >= 80 ? "すばらしい！あと少しで全問正解だよ✨"
+    : pct >= 50 ? "いい調子！まちがえた所を復習しよ♪" : "くりかえせば必ず覚えられるよ。いっしょにがんばろ！";
+  say("guideResult", pct >= 50 ? "happy" : "oops", msg);
   const uniq = [...new Set(round.wrong)];
   $("missTitle").hidden = $("missBox").hidden = uniq.length === 0;
   $("missList").innerHTML = uniq.map(f => `<li>${f}</li>`).join("");
