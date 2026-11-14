@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#8c2f1f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="歴史クイズ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<title>歴史 年号クイズ</title>
+<style>
+  :root {
+    --bg: #f6efe2; --card: #fffaf1; --ink: #2b211b; --sub: #7a6a5c;
+    --accent: #8c2f1f; --ok: #2e7d4f; --ng: #b3261e; --line: #e2d6c3;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    padding: env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  main { max-width: 520px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 20px 0 4px; color: var(--accent); }
+  .lead { color: var(--sub); font-size: 14px; margin: 0 0 16px; }
+  h2 { font-size: 15px; margin: 20px 0 8px; color: var(--sub); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .eras { display: flex; flex-wrap: wrap; gap: 8px; }
+  .eras label {
+    border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
+    font-size: 15px; background: #fff; user-select: none;
+  }
+  .eras input { display: none; }
+  .eras label:has(input:checked) { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row label { flex: 1; min-width: 90px; text-align: center; border: 1px solid var(--line); border-radius: 10px; padding: 10px 4px; background: #fff; font-size: 14px; }
+  .row input { display: none; }
+  .row label:has(input:checked) { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  button {
+    font: inherit; border: 0; border-radius: 12px; padding: 14px; width: 100%;
+    font-size: 17px; font-weight: 700; cursor: pointer;
+  }
+  .primary { background: var(--accent); color: #fff; margin-top: 16px; }
+  .ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); margin-top: 10px; }
+  button:disabled { opacity: .4; }
+  .progress { display: flex; justify-content: space-between; color: var(--sub); font-size: 14px; margin: 16px 0 8px; }
+  .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
+  .bar div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+  .kind { font-size: 13px; color: var(--sub); margin-bottom: 6px; }
+  .question { font-size: 21px; font-weight: 700; line-height: 1.5; margin-bottom: 4px; }
+  .choices { display: grid; gap: 10px; margin-top: 16px; }
+  .choice { background: #fff; border: 2px solid var(--line); color: var(--ink); text-align: left; font-weight: 600; padding: 14px 16px; }
+  .choice.ok { border-color: var(--ok); background: #e7f4ec; }
+  .choice.ng { border-color: var(--ng); background: #fbe9e7; }
+  .feedback { margin-top: 14px; font-size: 15px; line-height: 1.6; min-height: 1em; }
+  .feedback b.ok { color: var(--ok); } .feedback b.ng { color: var(--ng); }
+  .score { font-size: 44px; font-weight: 800; color: var(--accent); text-align: center; margin: 8px 0; }
+  .center { text-align: center; color: var(--sub); }
+  ul.miss { padding-left: 18px; line-height: 1.7; font-size: 15px; }
+  .note { font-size: 13px; color: var(--sub); margin-top: 18px; line-height: 1.6; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <!-- スタート画面 -->
+  <section id="home">
+    <h1>歴史 年号クイズ</h1>
+    <p class="lead">年号とできごと・人物を4択でおぼえよう</p>
+
+    <h2>時代をえらぶ</h2>
+    <div class="eras" id="eras"></div>
+
+    <h2>問題の数</h2>
+    <div class="row" id="counts">
+      <label><input type="radio" name="count" value="10" checked>10問</label>
+      <label><input type="radio" name="count" value="20">20問</label>
+      <label><input type="radio" name="count" value="0">ぜんぶ</label>
+    </div>
+
+    <button class="primary" id="start">スタート</button>
+    <button class="ghost" id="review">まちがえた問題だけ（<span id="missCount">0</span>問）</button>
+    <p class="note">まちがえた問題はこの端末に記録され、正解すると消えます。</p>
+  </section>
+
+  <!-- 出題画面 -->
+  <section id="quiz" hidden>
+    <div class="progress"><span id="pos"></span><span id="right"></span></div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="card">
+      <div class="kind" id="kind"></div>
+      <div class="question" id="question"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="primary" id="next" hidden>つぎへ</button>
+    <button class="ghost" id="quit">やめる</button>
+  </section>
+
+  <!-- 結果画面 -->
+  <section id="result" hidden>
+    <h1>けっか</h1>
+    <div class="card">
+      <div class="score" id="score"></div>
+      <div class="center" id="scoreMsg"></div>
+    </div>
+    <h2 id="missTitle">まちがえた問題</h2>
+    <div class="card" id="missBox"><ul class="miss" id="missList"></ul></div>
+    <button class="primary" id="again">もう一度</button>
+    <button class="ghost" id="home2">はじめにもどる</button>
+  </section>
+</main>
+
+<script>
+// ---- 問題データ ----
+// 追加するときは { era, year, event, person } の形で1行足すだけでOK。
+// event は「〜年のできごとは？」の答えとして読めるように書く。person は省略可。
+const ITEMS = [
+  { era: "古代", year: 57,   event: "奴国の王が後漢から金印を授かる" },
+  { era: "古代", year: 239,  event: "卑弥呼が魏に使いを送る", person: "卑弥呼" },
+  { era: "古代", year: 593,  event: "聖徳太子が推古天皇の摂政になる", person: "聖徳太子" },
+  { era: "古代", year: 603,  event: "冠位十二階を定める", person: "聖徳太子" },
+  { era: "古代", year: 604,  event: "十七条の憲法を定める", person: "聖徳太子" },
+  { era: "古代", year: 607,  event: "小野妹子を隋に送る（遣隋使）", person: "小野妹子" },
+  { era: "古代", year: 645,  event: "大化の改新が始まる", person: "中大兄皇子" },
+  { era: "古代", year: 672,  event: "壬申の乱がおこる", person: "大海人皇子（天武天皇）" },
+  { era: "古代", year: 701,  event: "大宝律令ができる" },
+  { era: "古代", year: 710,  event: "平城京に都をうつす" },
+  { era: "古代", year: 743,  event: "墾田永年私財法が出される", person: "聖武天皇" },
+  { era: "古代", year: 752,  event: "東大寺の大仏の開眼式が行われる", person: "聖武天皇" },
+  { era: "古代", year: 794,  event: "平安京に都をうつす", person: "桓武天皇" },
+  { era: "古代", year: 894,  event: "遣唐使が停止される", person: "菅原道真" },
+  { era: "古代", year: 1016, event: "藤原道長が摂政になる", person: "藤原道長" },
+  { era: "古代", year: 1086, event: "白河上皇が院政を始める", person: "白河上皇" },
+  { era: "古代", year: 1167, event: "平清盛が太政大臣になる", person: "平清盛" },
+
+  { era: "中世", year: 1185, event: "壇ノ浦の戦いで平氏がほろびる" },
+  { era: "中世", year: 1192, event: "源頼朝が征夷大将軍になる", person: "源頼朝" },
+  { era: "中世", year: 1221, event: "承久の乱がおこる" },
+  { era: "中世", year: 1232, event: "御成敗式目が定められる", person: "北条泰時" },
+  { era: "中世", year: 1274, event: "元軍がせめてくる（文永の役）", person: "北条時宗" },
+  { era: "中世", year: 1281, event: "元軍が再びせめてくる（弘安の役）", person: "北条時宗" },
+  { era: "中世", year: 1297, event: "永仁の徳政令が出される" },
+  { era: "中世", year: 1333, event: "鎌倉幕府がほろびる" },
+  { era: "中世", year: 1338, event: "足利尊氏が征夷大将軍になる", person: "足利尊氏" },
+  { era: "中世", year: 1392, event: "南北朝が統一される", person: "足利義満" },
+  { era: "中世", year: 1404, event: "明との勘合貿易が始まる", person: "足利義満" },
+  { era: "中世", year: 1467, event: "応仁の乱がおこる", person: "足利義政" },
+  { era: "中世", year: 1543, event: "種子島に鉄砲が伝わる" },
+  { era: "中世", year: 1549, event: "キリスト教が伝わる", person: "フランシスコ・ザビエル" },
+  { era: "中世", year: 1573, event: "室町幕府がほろびる", person: "織田信長" },
+  { era: "中世", year: 1575, event: "長篠の戦いがおこる", person: "織田信長" },
+  { era: "中世", year: 1582, event: "本能寺の変がおこる" },
+  { era: "中世", year: 1588, event: "刀狩令が出される", person: "豊臣秀吉" },
+  { era: "中世", year: 1590, event: "豊臣秀吉が全国を統一する", person: "豊臣秀吉" },
+
+  { era: "近世", year: 1600, event: "関ヶ原の戦いがおこる", person: "徳川家康" },
+  { era: "近世", year: 1603, event: "江戸幕府が開かれる", person: "徳川家康" },
+  { era: "近世", year: 1615, event: "武家諸法度が定められる" },
+  { era: "近世", year: 1635, event: "参勤交代が制度化される", person: "徳川家光" },
+  { era: "近世", year: 1637, event: "島原・天草一揆がおこる", person: "天草四郎" },
+  { era: "近世", year: 1641, event: "オランダ商館を出島にうつす（鎖国の完成）", person: "徳川家光" },
+  { era: "近世", year: 1716, event: "享保の改革が始まる", person: "徳川吉宗" },
+  { era: "近世", year: 1787, event: "寛政の改革が始まる", person: "松平定信" },
+  { era: "近世", year: 1841, event: "天保の改革が始まる", person: "水野忠邦" },
+  { era: "近世", year: 1853, event: "ペリーが浦賀に来航する", person: "ペリー" },
+  { era: "近世", year: 1854, event: "日米和親条約を結ぶ" },
+  { era: "近世", year: 1858, event: "日米修好通商条約を結ぶ", person: "井伊直弼" },
+  { era: "近世", year: 1867, event: "大政奉還が行われる", person: "徳川慶喜" },
+
+  { era: "近代", year: 1868, event: "五箇条の御誓文が出される" },
+  { era: "近代", year: 1871, event: "廃藩置県が行われる" },
+  { era: "近代", year: 1873, event: "地租改正・徴兵令が始まる" },
+  { era: "近代", year: 1877, event: "西南戦争がおこる", person: "西郷隆盛" },
+  { era: "近代", year: 1889, event: "大日本帝国憲法が発布される", person: "伊藤博文" },
+  { era: "近代", year: 1894, event: "日清戦争がおこる・領事裁判権がなくなる", person: "陸奥宗光" },
+  { era: "近代", year: 1904, event: "日露戦争がおこる" },
+  { era: "近代", year: 1910, event: "韓国併合が行われる" },
+  { era: "近代", year: 1911, event: "関税自主権を回復する", person: "小村寿太郎" },
+  { era: "近代", year: 1914, event: "第一次世界大戦が始まる" },
+  { era: "近代", year: 1925, event: "普通選挙法・治安維持法が成立する" },
+  { era: "近代", year: 1931, event: "満州事変がおこる" },
+  { era: "近代", year: 1932, event: "五・一五事件がおこる" },
+  { era: "近代", year: 1936, event: "二・二六事件がおこる" },
+  { era: "近代", year: 1937, event: "日中戦争が始まる" },
+  { era: "近代", year: 1941, event: "太平洋戦争が始まる" },
+
+  { era: "現代", year: 1945, event: "ポツダム宣言を受け入れ、戦争が終わる" },
+  { era: "現代", year: 1946, event: "日本国憲法が公布される" },
+  { era: "現代", year: 1951, event: "サンフランシスコ平和条約を結ぶ", person: "吉田茂" },
+  { era: "現代", year: 1956, event: "日本が国際連合に加盟する" },
+  { era: "現代", year: 1964, event: "東京オリンピックが開かれる" },
+  { era: "現代", year: 1972, event: "沖縄が日本に返還される" },
+];
+const ERAS = ["古代", "中世", "近世", "近代", "現代"];
+const ERA_NOTE = { 古代: "〜平安", 中世: "鎌倉〜安土桃山", 近世: "江戸", 近代: "明治〜昭和戦前", 現代: "戦後" };
+
+// ---- 保存（まちがえた問題）----
+const STORE_KEY = "history-quiz-miss-v1";
+function loadMiss() {
+  try { return new Set(JSON.parse(localStorage.getItem(STORE_KEY) || "[]")); } catch { return new Set(); }
+}
+function saveMiss(set) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify([...set])); } catch {}
+}
+let miss = loadMiss();
+
+// ---- 問題の作り方 ----
+// 1つのできごとから最大3種類の問題を作る
+//  y2e: 年号 → できごと / e2y: できごと → 年号 / e2p: できごと → 人物
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const idOf = (item, type) => `${item.year}|${item.event}|${type}`;
+
+function allQuestions(eras) {
+  const qs = [];
+  for (const it of ITEMS) {
+    if (!eras.includes(it.era)) continue;
+    qs.push({ item: it, type: "y2e" }, { item: it, type: "e2y" });
+    if (it.person) qs.push({ item: it, type: "e2p" });
+  }
+  return qs;
+}
+
+function pickDistractors(pool, correct, n) {
+  const uniq = [...new Set(pool)].filter(v => v !== correct);
+  return shuffle(uniq).slice(0, n);
+}
+
+function build(q) {
+  const it = q.item;
+  if (q.type === "y2e") {
+    // 同じ時代のできごとから選ぶ（同じ年のできごとはまぎらわしいので除く）
+    let pool = ITEMS.filter(x => x.year !== it.year && x.era === it.era).map(x => x.event);
+    if (pool.length < 3) pool = ITEMS.filter(x => x.year !== it.year).map(x => x.event);
+    return { kind: "年号 → できごと", text: `${it.year}年のできごとは？`, answer: it.event,
+             choices: shuffle([it.event, ...pickDistractors(pool, it.event, 3)]) };
+  }
+  if (q.type === "e2y") {
+    // 近い年号ほど選ばれやすくして、ひっかけにする
+    const near = ITEMS.map(x => x.year).filter(y => y !== it.year)
+      .sort((a, b) => Math.abs(a - it.year) - Math.abs(b - it.year)).slice(0, 6);
+    const ds = pickDistractors(near, it.year, 3);
+    return { kind: "できごと → 年号", text: `「${it.event}」のは何年？`, answer: `${it.year}年`,
+             choices: shuffle([it.year, ...ds]).map(y => `${y}年`) };
+  }
+  // e2p
+  const pool = ITEMS.filter(x => x.person && x.person !== it.person)
+    .sort((a, b) => Math.abs(a.year - it.year) - Math.abs(b.year - it.year))
+    .slice(0, 10).map(x => x.person);
+  return { kind: "できごと → 人物", text: `「${it.event}」に関係の深い人物は？`, answer: it.person,
+           choices: shuffle([it.person, ...pickDistractors(pool, it.person, 3)]) };
+}
+
+// ---- 画面 ----
+const $ = id => document.getElementById(id);
+const show = id => ["home", "quiz", "result"].forEach(s => $(s).hidden = s !== id);
+
+$("eras").innerHTML = ERAS.map(e =>
+  `<label><input type="checkbox" value="${e}" checked>${e}<small style="opacity:.7">（${ERA_NOTE[e]}）</small></label>`).join("");
+
+function selectedEras() { return [...document.querySelectorAll("#eras input:checked")].map(i => i.value); }
+function refreshHome() {
+  $("missCount").textContent = miss.size;
+  $("review").disabled = miss.size === 0;
+  $("start").disabled = selectedEras().length === 0;
+}
+$("eras").addEventListener("change", refreshHome);
+
+let round = null; // { list, i, right, wrong:[], answered, mode }
+
+function startRound(list, mode) {
+  if (!list.length) { show("home"); refreshHome(); return; }
+  round = { list, i: 0, right: 0, wrong: [], answered: false, mode };
+  show("quiz");
+  render();
+}
+
+$("start").onclick = () => {
+  const n = Number(document.querySelector("#counts input:checked").value);
+  let list = shuffle(allQuestions(selectedEras()));
+  if (n) list = list.slice(0, n);
+  startRound(list, "normal");
+};
+$("review").onclick = () => {
+  const all = allQuestions(ERAS);
+  startRound(shuffle(all.filter(q => miss.has(idOf(q.item, q.type)))), "review");
+};
+
+function render() {
+  const q = round.list[round.i];
+  const b = build(q);
+  round.current = { q, b };
+  round.answered = false;
+  $("pos").textContent = `${round.i + 1} / ${round.list.length}問`;
+  $("right").textContent = `正解 ${round.right}`;
+  $("barFill").style.width = `${round.i / round.list.length * 100}%`;
+  $("kind").textContent = `${q.item.era}・${b.kind}`;
+  $("question").textContent = b.text;
+  $("feedback").innerHTML = "";
+  $("next").hidden = true;
+  $("choices").innerHTML = "";
+  for (const c of b.choices) {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.textContent = c;
+    btn.onclick = () => answer(btn, String(c));
+    $("choices").appendChild(btn);
+  }
+}
+
+function answer(btn, value) {
+  if (round.answered) return;
+  round.answered = true;
+  const { q, b } = round.current;
+  const id = idOf(q.item, q.type);
+  const ok = value === String(b.answer);
+  for (const el of $("choices").children) {
+    if (el.textContent === String(b.answer)) el.classList.add("ok");
+  }
+  const it = q.item;
+  const fact = `${it.year}年 ${it.event}${it.person ? `（${it.person}）` : ""}`;
+  if (ok) {
+    round.right++;
+    miss.delete(id);
+    $("feedback").innerHTML = `<b class="ok">⭕ 正解！</b><br>${fact}`;
+  } else {
+    btn.classList.add("ng");
+    round.wrong.push(fact);
+    miss.add(id);
+    $("feedback").innerHTML = `<b class="ng">❌ ざんねん</b><br>${fact}`;
+  }
+  saveMiss(miss);
+  $("right").textContent = `正解 ${round.right}`;
+  $("next").hidden = false;
+  $("next").textContent = round.i + 1 < round.list.length ? "つぎへ" : "けっかを見る";
+}
+
+$("next").onclick = () => {
+  round.i++;
+  if (round.i < round.list.length) render(); else finish();
+};
+$("quit").onclick = () => { if (round.i > 0 || round.answered) finish(true); else { show("home"); refreshHome(); } };
+
+function finish(quit) {
+  const total = quit ? round.i + (round.answered ? 1 : 0) : round.list.length;
+  const pct = total ? Math.round(round.right / total * 100) : 0;
+  $("score").textContent = `${round.right} / ${total}`;
+  $("scoreMsg").textContent = pct === 100 ? "パーフェクト！🎉" : pct >= 80 ? "すばらしい！" : pct >= 50 ? "いい調子！まちがえた所を復習しよう" : "くりかえすと必ず覚えられるよ";
+  const uniq = [...new Set(round.wrong)];
+  $("missTitle").hidden = $("missBox").hidden = uniq.length === 0;
+  $("missList").innerHTML = uniq.map(f => `<li>${f}</li>`).join("");
+  show("result");
+}
+$("again").onclick = () => {
+  if (round.mode === "review") $("review").onclick(); else $("start").onclick();
+};
+$("home2").onclick = () => { show("home"); refreshHome(); };
+
+refreshHome();
+
+// オフラインで使えるようにする（対応していない環境では何もしない）
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>

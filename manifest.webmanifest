@@ -1,0 +1,15 @@
+{
+  "name": "歴史 年号クイズ",
+  "short_name": "歴史クイズ",
+  "description": "中学受験向け 歴史の年号・できごと・人物の4択クイズ",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6efe2",
+  "theme_color": "#8c2f1f",
+  "icons": [
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
