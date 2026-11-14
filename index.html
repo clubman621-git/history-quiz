@@ -198,13 +198,49 @@
   .rec dd { margin: 0 0 6px; }
   input.name { font: inherit; font-size: 18px; width: 100%; padding: 10px; border: 0; background: #fff; color: var(--ink); border-radius: 0; }
   .note { font-size: 13px; color: var(--sub); margin-top: 16px; line-height: 1.6; }
+  .slot { display: flex; align-items: center; gap: 8px; padding: 10px 0; }
+  .slot + .slot { border-top: 2px dashed #3b3160; }
+  .slot .open { flex: 1; background: transparent; color: #fff; box-shadow: none; text-align: left; margin: 0; padding: 8px 4px; min-height: 64px; font-size: 18px; line-height: 1.5; }
+  .slot .open small { display: block; font-size: 13px; color: #c4b5fd; }
+  .slot .open .no { color: #fde047; }
+  .slot .open.empty { color: #9a8fb3; }
+  .slot .del { flex: none; width: auto; min-height: 44px; margin: 0; padding: 8px 12px; font-size: 14px; background: #3b3160; color: #fda4af; box-shadow: none; }
+  .slot .open:active .no::before { content: "▷"; }
   [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <main>
+  <!-- ぼうけんのしょを えらぶ -->
+  <section id="slots">
+    <h1 class="logo" aria-label="歴史 年号クイズ"><div class="logo-wrap">
+      <span class="ribbon">★ HISTORY STAGE ★</span>
+      <span class="t1">歴史</span>
+      <span class="t2">年号クイズ</span>
+      <svg class="deco" viewBox="0 0 7 7" width="28" height="28" style="left:6%;top:64px" shape-rendering="crispEdges"><path d="M3 0h1v2h2v1h1v1h-1v1h1v2h-1v-1h-1v-1h-1v1h-1v-1h-1v1h-1v1h-1v-2h1v-1h-1v-1h1v-1h2z" fill="#fde047"/></svg>
+      <svg class="deco" viewBox="0 0 7 7" width="18" height="18" style="right:8%;top:150px" shape-rendering="crispEdges"><path d="M3 0h1v2h2v1h1v1h-1v1h1v2h-1v-1h-1v-1h-1v1h-1v-1h-1v1h-1v1h-1v-2h1v-1h-1v-1h1v-1h2z" fill="#fff"/></svg>
+      <svg class="deco" viewBox="0 0 7 7" width="14" height="14" style="left:14%;top:150px" shape-rendering="crispEdges"><path d="M3 0h1v2h2v1h1v1h-1v1h1v2h-1v-1h-1v-1h-1v1h-1v-1h-1v1h-1v1h-1v-2h1v-1h-1v-1h1v-1h2z" fill="#f9a8d4"/></svg>
+      <svg class="deco" viewBox="0 0 6 8" width="21" height="28" style="right:12%;top:60px" shape-rendering="crispEdges"><path d="M2 0h4v5h-1v-3h-2v4h-1v2h-2v-2h1v-1h1z" fill="#ec4899"/><path d="M5 5h-1v2h-1v1h2z" fill="#ec4899"/></svg>
+    </div></h1>
+    <div class="win" style="margin-top:18px"><span class="label">ぼうけんのしょ</span>
+      <div id="slotList"></div>
+    </div>
+    <div class="win" id="newPanel" hidden>
+      <span class="label">あたらしく はじめる</span>
+      <div style="font-size:17px;margin-bottom:10px">ゆうしゃの なまえを いれてください</div>
+      <input class="name" id="newName" maxlength="8" placeholder="ゆうしゃ">
+      <div class="twin" style="margin-top:20px"><button class="pxbtn" id="newOk">はじめる</button><button class="pxbtn" id="newCancel">やめる</button></div>
+    </div>
+    <div class="win" id="delPanel" hidden>
+      <span class="label">けす</span>
+      <div id="delMsg" style="font-size:17px;line-height:1.6"></div>
+      <div class="twin" style="margin-top:20px"><button class="pxbtn" id="delYes">はい</button><button class="pxbtn" id="delNo">いいえ</button></div>
+    </div>
+    <p class="note">ぼうけんのしょは 3つまで。きろくは この端末の中だけに ほぞんされます。</p>
+  </section>
+
   <!-- スタート画面 -->
-  <section id="home">
+  <section id="home" hidden>
     <h1 class="logo" aria-label="歴史 年号クイズ"><div class="logo-wrap">
       <span class="ribbon">★ HISTORY STAGE ★</span>
       <span class="t1">歴史</span>
@@ -234,8 +270,9 @@
     <button class="ghost pxbtn" id="review">まちがえた問題と たたかう（<span id="missCount">0</span>問）</button>
     <div class="twin">
       <button class="pxbtn" id="openZukan">ずかん</button>
-      <button class="pxbtn" id="openRecord">ぼうけんのしょ</button>
+      <button class="pxbtn" id="openRecord">つよさ</button>
     </div>
+    <button class="ghost pxbtn" id="toSlots">ぼうけんのしょを えらびなおす</button>
     <label class="toggle">しおりを表示する<input type="checkbox" id="showGuide" checked></label>
     <p class="note">きろくは この端末の中だけに ほぞんされます。</p>
   </section>
@@ -283,9 +320,9 @@
     <button class="ghost pxbtn" id="zukanBack">もどる</button>
   </section>
 
-  <!-- ぼうけんのしょ -->
+  <!-- つよさ -->
   <section id="record" hidden>
-    <div class="win"><span class="label">ぼうけんのしょ</span><dl class="rec" id="rec"></dl></div>
+    <div class="win"><span class="label">つよさ</span><dl class="rec" id="rec"></dl></div>
     <h2>ゆうしゃの なまえ</h2>
     <div class="pxbox" style="margin:4px"><input class="name" id="nameInput" maxlength="8" placeholder="ゆうしゃ"></div>
     <button class="ghost pxbtn" id="recordBack">もどる</button>
@@ -386,22 +423,42 @@ const PERSONS = [...new Set(ITEMS.filter(x => x.person).map(x => x.person))];
 const MISS_KEY = "history-quiz-miss-v1", SAVE_KEY = "history-quiz-save-v1", GUIDE_KEY = "history-quiz-guide-v1";
 const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-let miss = new Set(load(MISS_KEY, []));
-const saveMiss = () => store(MISS_KEY, [...miss]);
-let save = Object.assign({ name: "", exp: 0, cards: [], battles: 0, wins: 0, correct: 0, answered: 0,
-  lastDay: "", days: 0, bestDays: 0, bestCombo: 0 }, load(SAVE_KEY, {}));
-const persist = () => store(SAVE_KEY, save);
+// ぼうけんのしょ（3人まで）
+const SLOTS_KEY = "history-quiz-slots-v1";
+const blankSave = name => ({ name, exp: 0, cards: [], battles: 0, wins: 0, correct: 0, answered: 0,
+  lastDay: "", days: 0, bestDays: 0, bestCombo: 0, miss: [] });
+let book = load(SLOTS_KEY, null);
+if (!book) {
+  // まえの版の きろくが あれば ぼうけんのしょ1 に うつす
+  book = { current: null, slots: [null, null, null] };
+  const old = load(SAVE_KEY, null), oldMiss = load(MISS_KEY, []);
+  if (old || oldMiss.length) book.slots[0] = Object.assign(blankSave(""), old || {}, { miss: oldMiss });
+  store(SLOTS_KEY, book);
+}
+let slot = null, save = blankSave(""), miss = new Set();
+const persist = () => {
+  if (slot === null) return;
+  save.miss = [...miss]; book.slots[slot] = save; book.current = slot; store(SLOTS_KEY, book);
+};
+const saveMiss = persist;
 
 // れんぞくログイン
-(function () {
+function loginCheck() {
   const d = new Date(), key = t => `${t.getFullYear()}-${t.getMonth() + 1}-${t.getDate()}`;
   const today = key(d), y = new Date(d); y.setDate(d.getDate() - 1);
   if (save.lastDay !== today) {
     save.days = save.lastDay === key(y) ? save.days + 1 : 1;
     save.bestDays = Math.max(save.bestDays, save.days);
-    save.lastDay = today; persist();
+    save.lastDay = today;
   }
-})();
+}
+function useSlot(i) {
+  slot = i;
+  save = Object.assign(blankSave(""), book.slots[i]);
+  miss = new Set(save.miss || []);
+  loginCheck(); persist();
+  show("home"); refreshHome();
+}
 
 // ---- レベル ----
 const need = lv => 30 + 20 * (lv - 1);             // つぎのレベルまでに ひつような けいけんち
@@ -550,7 +607,7 @@ function build(q) {
 // ---- 画面の道具 ----
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
-const SCREENS = ["home", "quiz", "result", "zukan", "record"];
+const SCREENS = ["slots", "home", "quiz", "result", "zukan", "record"];
 const show = id => { SCREENS.forEach(s => $(s).hidden = s !== id); window.scrollTo(0, 0); };
 
 // 1文字ずつ表示（タップで とばせる）
@@ -854,7 +911,54 @@ $("openRecord").onclick = () => {
 $("nameInput").addEventListener("change", e => { save.name = e.target.value.trim().slice(0, 8); persist(); });
 $("recordBack").onclick = () => { save.name = $("nameInput").value.trim().slice(0, 8); persist(); show("home"); refreshHome(); };
 
-refreshHome();
+// ---- ぼうけんのしょ えらび ----
+let pendingDel = null;
+function renderSlots() {
+  $("newPanel").hidden = $("delPanel").hidden = true;
+  const box = $("slotList"); box.innerHTML = "";
+  book.slots.forEach((sv, i) => {
+    const row = document.createElement("div"); row.className = "slot";
+    const btn = document.createElement("button"); btn.className = "open" + (sv ? "" : " empty");
+    if (sv) {
+      const L = levelOf(sv.exp);
+      btn.innerHTML = `<span class="no">ぼうけんのしょ${i + 1}</span>　<span class="nm"></span><small></small>`;
+      btn.querySelector(".nm").textContent = sv.name || "ゆうしゃ";
+      btn.querySelector("small").textContent = `Lv ${L.lv}　${titleOf(L.lv)}　カード ${sv.cards.length}/${PERSONS.length}`;
+      btn.onclick = () => useSlot(i);
+      const del = document.createElement("button"); del.className = "del"; del.textContent = "けす";
+      del.onclick = () => {
+        pendingDel = i;
+        $("delMsg").textContent = `ぼうけんのしょ${i + 1}（${sv.name || "ゆうしゃ"}）を けしますか？ もとには もどせません。`;
+        $("newPanel").hidden = true; $("delPanel").hidden = false;
+      };
+      row.append(btn, del);
+    } else {
+      btn.innerHTML = `<span class="no">ぼうけんのしょ${i + 1}</span>　からっぽ<small>タップして あたらしく はじめる</small>`;
+      btn.onclick = () => { pendingNew = i; $("newName").value = ""; $("delPanel").hidden = true; $("newPanel").hidden = false; $("newName").focus(); };
+      row.append(btn);
+    }
+    box.appendChild(row);
+  });
+}
+let pendingNew = null;
+$("newOk").onclick = () => {
+  if (pendingNew === null) return;
+  book.slots[pendingNew] = blankSave($("newName").value.trim().slice(0, 8));
+  store(SLOTS_KEY, book);
+  useSlot(pendingNew); pendingNew = null;
+};
+$("newCancel").onclick = () => { pendingNew = null; $("newPanel").hidden = true; };
+$("delYes").onclick = () => {
+  if (pendingDel === null) return;
+  book.slots[pendingDel] = null;
+  if (book.current === pendingDel) book.current = null;
+  store(SLOTS_KEY, book); pendingDel = null; renderSlots();
+};
+$("delNo").onclick = () => { pendingDel = null; $("delPanel").hidden = true; };
+$("toSlots").onclick = () => { slot = null; renderSlots(); show("slots"); };
+
+renderSlots();
+show("slots");
 
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   navigator.serviceWorker.register("sw.js").catch(() => {});

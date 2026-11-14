@@ -2,7 +2,7 @@
 // アプリは端末に保存した分だけで動き、ふだんはほぼ通信しません。
 // index.html などを更新したら、必ず VERSION の数字を上げてください。
 // そうすると次に開いたときに新しい版をまとめて取り込み、その次の起動から反映されます。
-const VERSION = "history-quiz-v11";
+const VERSION = "history-quiz-v12";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-180.png", "./icons/icon-512.png", "./fonts/dot.woff2"];
 
 self.addEventListener("install", e => {
