@@ -169,6 +169,10 @@ ns = runpy.run_path(os.path.join(ROOT, "tools", "char_src.py"))
 char_svg = open("/tmp/px/char.svg").read()
 
 sprites = {"char": char_svg, "chest": svg_from(CHEST, CHEST_PAL), "chestOpen": svg_from(CHEST_OPEN, CHEST_PAL)}
+import importlib.util
+spec = importlib.util.spec_from_file_location("portraits", os.path.join(ROOT, "tools", "portraits.py"))
+portraits = importlib.util.module_from_spec(spec); spec.loader.exec_module(portraits)
+for n, sv in portraits.all_svgs().items(): sprites["p:" + n] = sv
 names = {}
 for key, (name, pal, rows) in MONSTERS.items():
     sprites[key] = svg_from(rows, pal); names[key] = name
